@@ -14,11 +14,16 @@ Here are some of the changes I've made,
 - Supports testing with multiple solutions for a problem.
 - Other small things like naming changes, removing the `PROBLEM` variable and directly fetching it from the docstring, extra error handling.
 
+Note: This project is still work in progress.
+
 # Installation
-Currently, you'll need to clone the git repository and install it with [poetry](https://python-poetry.org/).
+Currently, you'll need to clone the git repository and install the package manually with `pip`.
+
+This should preferable be done in a virtual environment.
 
 ```sh
-poetry install
+git clone https://github.com/dashmage/plr
+pip install ./plr
 ```
 
 # Usage
