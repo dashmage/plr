@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "plr"
+version = "0.1.0"
+description = "Python LeetCode runner to fetch problems and test solutions."
+authors = ["Ashley James <ashley@dashmage.dev>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/dashmage/plr"
+keywords = ["python", "leetcode"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer-slim = "^0.12.3"
+rich = "^13.7.1"
+gql = {extras = ["requests"], version = "^3.5.0"}
+pydantic = "^2.7.1"
+beautifulsoup4 = "^4.12.3"
+
+[tool.poetry.scripts]
+plr = "plr.cli:plr"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.2.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+isort = "^5.13.2"
+mypy = "^1.10.0"
+pre-commit = "^3.7.1"
+
+[tool.black]
+quiet = true
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
