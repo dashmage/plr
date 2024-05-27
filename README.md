@@ -12,7 +12,7 @@ Here are some of the changes I've made,
 - Add a new `test` subcommand instead of calling the class method in the solution file.
 - Remove `colorama`, `termcolor` dependencies in favour of directly using `rich`.
 - Supports testing with multiple solutions for a problem.
-- Other small things like naming changes, removing the `PROBLEM` variable and directly fetching it from the docstring, extra error handling.
+- Other small things like naming changes, simplying usage in places, extra error handling.
 
 Note: This project is still work in progress.
 
