@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from plr.models import TestCase
 from plr.show import (
@@ -10,22 +10,22 @@ from plr.show import (
 )
 
 
-class Validator:
+class TestValidator:
     def __init__(self, module):
         self.solution = module.Solution()
         self.doc = module.__doc__
         self.test_cases = self.parse_examples()
-        self.check()
+        self.validate()
 
     @property
     def solution_methods(self) -> list:
-        attrs = list(vars(self.solution.__class__))
-        return [a for a in attrs if not a.startswith("_") and a != "test"]
+        """Return list of solution methods in the class as strings.
 
-    @property
-    def custom_test_exists(self):
+        Solution methods are all methods in the Solution class except for the
+        custom validator method (if present).
+        """
         attrs = list(vars(self.solution.__class__))
-        return True if "test" in attrs else False
+        return [a for a in attrs if not a.startswith("_")]
 
     def parse_examples(self):
         examples = []
@@ -48,6 +48,9 @@ class Validator:
             return False
         if output.lower() == "true":
             return True
+        # when dealing with in-place change questions with two output elements
+        # eg: if output = "2, nums=[1,2,_]"
+        # result = (2, [1, 2])
         result = ()
         if len(output_elements := output.split(", ")) > 1:
             for element in output_elements:
@@ -70,7 +73,12 @@ class Validator:
             kwargs[key.strip()] = eval(value)
         return kwargs
 
-    def check(self, extra_cases: Optional[List[TestCase]] = None) -> List[bool]:
+    def advanced_validator(self, method: Callable, input_args: dict):
+        """Advanced validator for dealing with multiple output elements."""
+        result = method(**input_args)
+        return result, input_args["nums"][:result]
+
+    def validate(self, extra_cases: Optional[List[TestCase]] = None) -> List[bool]:
         extra_cases = extra_cases or []
 
         for method_name in self.solution_methods:
@@ -79,25 +87,26 @@ class Validator:
             for input_str, output_str in self.test_cases:
                 expected = self.eval_output(output_str)
 
-                method = getattr(self.solution, method_name)
+                solution_method = getattr(self.solution, method_name)
                 input_kwargs = self.parse_string_to_kwargs(input_str)
-                if self.custom_test_exists:
-                    test_method = getattr(self.solution, "test")
-                    actual = test_method(method, input_kwargs)
+
+                # questions requiring in-place changes with multiple
+                # output elements requires more complex validation
+                if isinstance(expected, tuple):
+                    actual = self.advanced_validator(solution_method, input_kwargs)
+                    print_case_summary(input_str, actual, expected)
                 else:
-                    actual = method(**input_kwargs)
+                    actual = solution_method(**input_kwargs)
+                    print_case_summary(input_str, actual, expected)
 
-                # actual = eval(f"self.solution.{method_name}({input_str})")
-
-                print_case_summary(input_str, actual, expected)
                 results.append(actual == expected)
 
                 print_dashes()
 
             for test_case in extra_cases:
                 print_dashes()
-                method = getattr(self.solution, method_name)
-                actual = method(*test_case.args.args, **test_case.args.kwargs)
+                solution_method = getattr(self.solution, method_name)
+                actual = solution_method(*test_case.args.args, **test_case.args.kwargs)
 
                 print_case_summary(test_case.args, actual, test_case.answer)
                 results.append(actual == test_case.answer)
