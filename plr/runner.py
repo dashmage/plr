@@ -9,13 +9,15 @@ from plr.show import (
     print_session_summary,
 )
 
+CUSTOM_EVAL_FN = "evaluate"
 
 class TestValidator:
     def __init__(self, module):
+        self.module = module
         self.solution = module.Solution()
         self.doc = module.__doc__
         self.test_cases = self.parse_examples()
-        self.validate()
+        self.run_tests()
 
     @property
     def solution_methods(self) -> list:
@@ -26,6 +28,24 @@ class TestValidator:
         """
         attrs = list(vars(self.solution.__class__))
         return [a for a in attrs if not a.startswith("_")]
+
+    @property
+    def custom_evaluator(self) -> str | None:
+        """Check if evaluate function has been defined in solution module.
+        
+        evaluate function: evaluates result of solution method in non-standard case.
+        """
+        global_attrs = list(vars(self.module))
+        return CUSTOM_EVAL_FN if CUSTOM_EVAL_FN in global_attrs else None
+
+    @property
+    def custom_validator(self) -> str | None:
+        """Check if evaluate function has been defined in solution module.
+        
+        evaluate function: evaluates result of solution method in non-standard case.
+        """
+        global_attrs = list(vars(self.module))
+        return "validate" if "validate" in global_attrs else None
 
     def parse_examples(self):
         examples = []
@@ -64,9 +84,15 @@ class TestValidator:
         return result
 
     def parse_string_to_kwargs(self, s):
-        # assuming each pair of kwargs are separated by ", "
-        # and any list, set, dict doesn't have space after the comma
-        pairs = s.split(", ")
+        """Parse input kwargs from string.
+
+        Eg: TODO
+        """
+        # , matches the comma.
+        # \s* matches any whitespace characters (including none).
+        # (?=\w+\s*=\s*) is a lookahead assertion that checks for a sequence of word characters
+        #  followed by optional whitespace around the equals sign.
+        pairs = re.split(r',\s*(?=\w+\s*=\s*)', s)
         kwargs = {}
         for pair in pairs:
             key, value = pair.split("=")
@@ -78,7 +104,7 @@ class TestValidator:
         result = method(**input_args)
         return result, input_args["nums"][:result]
 
-    def validate(self, extra_cases: Optional[List[TestCase]] = None) -> List[bool]:
+    def run_tests(self, extra_cases: Optional[List[TestCase]] = None) -> List[bool]:
         extra_cases = extra_cases or []
 
         for method_name in self.solution_methods:
@@ -90,16 +116,23 @@ class TestValidator:
                 solution_method = getattr(self.solution, method_name)
                 input_kwargs = self.parse_string_to_kwargs(input_str)
 
-                # questions requiring in-place changes with multiple
-                # output elements requires more complex validation
-                if isinstance(expected, tuple):
-                    actual = self.advanced_validator(solution_method, input_kwargs)
-                    print_case_summary(input_str, actual, expected)
+                if self.custom_evaluator:
+                    custom_evaluator = getattr(self.module, self.custom_evaluator)
+                    actual = custom_evaluator(solution_method, input_kwargs)
                 else:
+                    if isinstance(expected, tuple):
+                        # multiple output elements but no custom validator
+                        print("multiple output elements detected, provide custom evaluator function")
+                        exit()
                     actual = solution_method(**input_kwargs)
-                    print_case_summary(input_str, actual, expected)
 
-                results.append(actual == expected)
+                if self.custom_validator:
+                    custom_validator = getattr(self.module, self.custom_validator)
+                    test_output = print_case_summary(input_str, actual, expected, custom_validator=custom_validator)
+                    results.append(test_output)
+                else:
+                    test_output = print_case_summary(input_str, actual, expected)
+                    results.append(test_output)
 
                 print_dashes()
 
@@ -113,3 +146,4 @@ class TestValidator:
 
             print_session_summary(results)
         return results
+

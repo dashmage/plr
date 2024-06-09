@@ -21,21 +21,33 @@ def print_heading(text: str):
     rprint(f"[bright_blue]{text}[/bright_blue]")
 
 
-def print_case_summary(args, actual, expected):
+def print_case_summary(args, actual, expected, custom_validator=None):
+    is_success = None
     args_str = str(args)
     if isinstance(args, Args):
         args_str = ", ".join(a for a in args.args) + ", ".join(
             f"{k} = {v}" for k, v in args.kwargs.items()
         )
 
-    if actual == expected:
-        print_green("[ OK ]")
+    if custom_validator:
+        if custom_validator(actual, expected):
+            print_green("[ OK ]")
+            is_success = True
+        else:
+            print_red("[ FAILED ]")
+            is_success = False
     else:
-        print_red("[ FAILED ]")
+        if actual == expected:
+            print_green("[ OK ]")
+            is_success = True
+        else:
+            print_red("[ FAILED ]")
+            is_success = False
 
     print(args_str)
     print("Expected:", expected)
     print("Actual  :", actual)
+    return is_success
 
 
 def print_session_summary(results: List[bool]):
