@@ -2,8 +2,6 @@ from typing import List
 
 from rich import print as rprint
 
-from plr.models import Args
-
 
 def print_green(text: str):
     rprint(f"[green]{text}[/green]")
@@ -21,19 +19,9 @@ def print_heading(text: str):
     rprint(f"[bright_blue]{text}[/bright_blue]")
 
 
-def print_case_summary(args, actual, expected):
-    args_str = str(args)
-    if isinstance(args, Args):
-        args_str = ", ".join(a for a in args.args) + ", ".join(
-            f"{k} = {v}" for k, v in args.kwargs.items()
-        )
-
-    if actual == expected:
-        print_green("[ OK ]")
-    else:
-        print_red("[ FAILED ]")
-
-    print(args_str)
+def print_case_summary(args, actual, expected, is_success):
+    print_green("[ OK ]") if is_success else print_red("[ FAILED ]")
+    print(args)
     print("Expected:", expected)
     print("Actual  :", actual)
 

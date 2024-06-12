@@ -20,10 +20,11 @@ def create_content(p: Problem) -> str:
         $description
         \"\"\"
 
+
         $snippet
 
         """
-    )
+    ).lstrip("\n")
 
     return Template(template_raw).substitute(
         id=q.question_id,

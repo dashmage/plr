@@ -4,9 +4,9 @@ from pathlib import Path
 
 from typer import Argument, Option, Typer, echo
 
-from plr.fetcher import InvalidSlugError, fetch_problem, make_gql_client
+from plr.fetcher import fetch_problem, make_gql_client
 from plr.generator import create_content
-from plr.runner import Validator
+from plr.runner import TestValidator
 
 plr = Typer()
 
@@ -31,6 +31,7 @@ def pull(
 
 @plr.command()
 def test(slug: str = Argument(..., help="Problem slug")):
+    """Run the tests for the provided problem slug."""
     module_name = None
     for file in os.listdir(os.getcwd()):
         # strip problem id and .py suffix, then compare with slug
@@ -43,7 +44,7 @@ def test(slug: str = Argument(..., help="Problem slug")):
     try:
         module = __import__(module_name)
     except ModuleNotFoundError:
-        print(f"Unable to import file: {module_name}")
+        print(f"Error while importing module: {module_name}")
         exit()
 
-    Validator(module)
+    TestValidator(module)
