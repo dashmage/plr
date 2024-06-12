@@ -80,12 +80,12 @@ class TestValidator:
     def parse_string_to_kwargs(self, s):
         """Parse input kwargs from string.
 
-        Eg: 
+        Eg:
         input:  "nums = [2,7,11,15], target = 9"
         result: {"nums": [2, 7, 11, 15], "target": 9}
 
         input:  "s='some string, with a comma'"
-        result: 
+        result:
         """
         # ",\s*(?=\w+\s*=\s*)" regex explanation
         #   , matches the comma.
@@ -123,9 +123,7 @@ class TestValidator:
                 # there's in-place changes on the input and the solution method
                 # should have a custom evaluator
                 if isinstance(expected, tuple):
-                    print(
-                        "multiple output elements detected but no custom evaluator"
-                    )
+                    print("multiple output elements detected but no custom evaluator")
                     exit()
                 actual = solution_method(**input_kwargs)
 
@@ -140,7 +138,7 @@ class TestValidator:
             print_dashes()
 
         print_session_summary(results)
-    
+
     def run_tests(self):
         for method_name in self.solution_methods:
             print_heading(f"\n=== {method_name} ===\n")
