@@ -4,7 +4,7 @@ from pathlib import Path
 
 from typer import Argument, Option, Typer, echo
 
-from plr.fetcher import InvalidSlugError, fetch_problem, make_gql_client
+from plr.fetcher import fetch_problem, make_gql_client
 from plr.generator import create_content
 from plr.runner import TestValidator
 

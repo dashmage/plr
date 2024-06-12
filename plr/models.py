@@ -4,18 +4,6 @@ from typing import List
 from pydantic import BaseModel, Field
 
 
-class Args:
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-
-class TestCase:
-    def __init__(self, args: Args, answer):
-        self.args = args
-        self.answer = answer
-
-
 class LCBaseModel(BaseModel):
     class Config:  # noqa
         populate_by_name = True
