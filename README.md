@@ -25,14 +25,15 @@ pip install ./plr
 ```
 
 # Usage
-In order to fetch the problem details, run
+From the LeetCode problem URL, obtain the title slug name. For the [two sum problem](https://leetcode.com/problems/two-sum/), that would be `two-sum`.
 
+Now run,
 ```sh
 $ plr pull two-sum
 
 1-two-sum.py has been created! Happy solving
 ```
-This fetches the [two sum problem](https://leetcode.com/problems/two-sum/) and adds the problem details into the docstring of the newly created python file, `1-two-sum.py`. `1` is the problem ID for the two sum problem.
+This fetches the problem description and python starter code and adds into the newly created `1-two-sum.py` python file. `1` is the problem ID for the two sum problem.
 
 After coding up a solution and adding it to the `Solution` class, run the `plr test` command to validate it against the example test cases.
 ```sh
