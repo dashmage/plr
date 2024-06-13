@@ -1,20 +1,17 @@
 # Overview
 `plr`(python-leetcode-runner) is a tool to fetch [LeetCode](https://leetcode.com) problems (using the problem title slug) and then to test your solutions.
 
-Code logic has mostly been lifted from the [leetcode-runner project](https://github.com/fbjorn/leetcode-runner).
-This includes,
+A lot of code logic has been lifted from the wonderful [leetcode-runner project](https://github.com/fbjorn/leetcode-runner).
 - `fetcher.py`: To execute the GraphQL query on the public API and get the problem details.
 - `models.py`: Pydantic models for the problem data obtained.
 - `generator.py`: To generate the template for the python solution file that's created.
-- `runner.py`: To run tests and validate the solution.
 
-Here are some of the changes I've made,
-- Add a new `test` subcommand instead of calling the class method in the solution file.
-- Remove `colorama`, `termcolor` dependencies in favour of directly using `rich`.
+Some of my improvements include,
+- A new `test` subcommand instead of calling the class method in the solution file.
 - Supports testing with multiple solutions for a problem.
-- Other small things like naming changes, simplying usage in places, extra error handling.
+- Specify your own custom methods for more complex testing scenarios required for certain problems.
 
-Note: This project is still work in progress.
+Note: This project is still a work in progress.
 
 # Installation
 Currently, you'll need to clone the git repository and install the package manually with `pip`.
@@ -34,16 +31,18 @@ $ plr pull two-sum
 
 1-two-sum.py has been created! Happy solving
 ```
-This will fetch the [two sum problem](https://leetcode.com/problems/two-sum/) and write the problem details and python starter code into `1-two-sum.py` file where `1` is the problem ID.
+This fetches the [two sum problem](https://leetcode.com/problems/two-sum/) and adds the problem details into the docstring of the newly created python file, `1-two-sum.py`. `1` is the problem ID for the two sum problem.
 
-After figuring out a solution, run
+After coding up a solution and adding it to the `Solution` class, run the `plr test` command to validate it against the example test cases.
 ```sh
 $ plr test two-sum
 ```
 
-This will test the `Solution` class method with the examples from the problem automatically. You can provide extra test cases if required.
+This will test the `Solution` class method(s) with the examples automatically parsed from the problem description in the docstring.
 
-Multiple methods can be defined in the Solution class and each would be tested with the example test cases.
+
+## Multiple Solutions
+You can even provide multiple solution methods in the `Solution` class and each of them would be validated with the example test cases.
 
 ```sh
 === twoSum_1 ===
@@ -88,7 +87,38 @@ Passed: 0/3
 
 ```
 
+## Extra Test Cases
+Extra test cases can easily be added by appending a new "Example" in the problem description. This additional test will be picked up by the test validator.
+
+```
+Example 5:
+Input: nums = [1,2,3], k = 2
+Output: [1,2]
+```
+
+## Advanced Usage
+Certain problems require more steps to be performed either while evaluating and returning the actual results from the solution method or while validating whether the results are as expected.
+
+For these situations, you can optionally define two methods outside the `Solution` class, namely `evaluate` and `validate`.
+
+The `evaluate` method comes in handy when you need to alter the results returned by the solution method. This can happen when the expected results also check the value of the input array which changes in-place.
+
+Example: Problem #26, remove duplicates from sorted array. Here, we need to evaluate the number of unique elements and return that along with the input array as a tuple.
+```python
+def evaluate(method, kwargs):
+    result = method(**kwargs)
+    return result, kwargs["nums"][:result]
+```
+
+The `validate` method can be defined when you need to explicitly specify how to compare the actual and expected test case results. By default, this is checked simply by running `actual == expected`. But in some problems, say, where the order of elements in the expected array can be ignored, you cannot directly compare their values.
+
+Example: Problem #347, top k frequent elements. In this problem, we're expected to return the top k frequent elements as a list in any order. So `Counters` can be used to ignore the sort order but still preserve duplicates during the comparison between the lists.
+```python
+def validate(actual, expected):
+    from collections import Counter
+    return Counter(actual) == Counter(expected)
+```
+
 # TODO
 - Write tests
-- Allow for custom tests (eg: for problem 26, remove duplicates from sorted array)
 - Publish on PyPI
