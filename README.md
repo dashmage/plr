@@ -10,6 +10,7 @@ Some of my improvements include,
 - A new `test` subcommand instead of calling the class method in the solution file.
 - Supports testing with multiple solutions for a problem.
 - Specify your own custom methods for more complex testing scenarios required for certain problems.
+- Shorter name 😉
 
 Note: This project is still a work in progress.
 
