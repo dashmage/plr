@@ -6,7 +6,7 @@ from typer import Argument, Option, Typer, echo
 
 from plr.fetcher import fetch_problem, make_gql_client
 from plr.generator import create_content
-from plr.runner import TestValidator
+from plr.runner import TestRunner
 
 plr = Typer()
 
@@ -47,5 +47,5 @@ def test(slug: str = Argument(..., help="Problem slug")):
         print(f"Error while importing module: {module_name}")
         exit()
 
-    val = TestValidator(module)
-    val.run_tests()
+    runner = TestRunner(module)
+    runner.run_tests()

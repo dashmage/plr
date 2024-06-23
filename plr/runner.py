@@ -12,7 +12,7 @@ EVALUATE_FN_NAME = "evaluate"
 VALIDATE_FN_NAME = "validate"
 
 
-class TestValidator:
+class TestRunner:
     def __init__(self, module):
         self.module = module
         self.solution = module.Solution()
