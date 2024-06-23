@@ -47,4 +47,5 @@ def test(slug: str = Argument(..., help="Problem slug")):
         print(f"Error while importing module: {module_name}")
         exit()
 
-    TestValidator(module)
+    val = TestValidator(module)
+    val.run_tests()

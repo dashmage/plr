@@ -17,7 +17,6 @@ class TestValidator:
         self.solution = module.Solution()
         self.doc = module.__doc__
         self.test_cases = self.parse_examples()
-        self.run_tests()
 
     @property
     def solution_methods(self) -> list:
