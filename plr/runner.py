@@ -1,4 +1,5 @@
 import re
+from typing import Callable
 
 from plr.show import (
     print_case_summary,
@@ -29,16 +30,22 @@ class TestValidator:
         return [a for a in attrs if not a.startswith("_")]
 
     @property
-    def custom_evaluator(self) -> str | None:
-        """Check if custom evaluate function has been defined in solution module."""
+    def custom_evaluator(self) -> Callable | None:
+        """Return custom evaluate function if defined in solution module."""
         global_attrs = list(vars(self.module))
-        return EVALUATE_FN_NAME if EVALUATE_FN_NAME in global_attrs else None
+        present = EVALUATE_FN_NAME if EVALUATE_FN_NAME in global_attrs else None
+        if present:
+            return getattr(self.module, EVALUATE_FN_NAME)
+        return None
 
     @property
-    def custom_validator(self) -> str | None:
-        """Check if custom validate function has been defined in solution module."""
+    def custom_validator(self) -> Callable | None:
+        """Return custom validate function if defined in solution module."""
         global_attrs = list(vars(self.module))
-        return VALIDATE_FN_NAME if VALIDATE_FN_NAME in global_attrs else None
+        present = VALIDATE_FN_NAME if VALIDATE_FN_NAME in global_attrs else None
+        if present:
+            return getattr(self.module, VALIDATE_FN_NAME)
+        return None
 
     def parse_examples(self):
         examples = []
@@ -57,6 +64,7 @@ class TestValidator:
 
     @staticmethod
     def eval_output(output: str):
+        """Convert string to a Python object for expected output."""
         if output.lower() == "false":
             return False
         if output.lower() == "true":
@@ -76,8 +84,8 @@ class TestValidator:
             result = eval(output)
         return result
 
-    def parse_string_to_kwargs(self, s):
-        """Parse input kwargs from string.
+    def convert_string_to_dict(self, s):
+        """Parse input kwargs as a dict from string.
 
         Eg:
         input:  "nums = [2,7,11,15], target = 9"
@@ -109,28 +117,28 @@ class TestValidator:
     def test_method(self, method_name):
         results = []
         for input_str, output_str in self.test_cases:
+            input_kwargs = self.convert_string_to_dict(input_str)
             expected = self.eval_output(output_str)
-
             solution_method = getattr(self.solution, method_name)
-            input_kwargs = self.parse_string_to_kwargs(input_str)
 
             if self.custom_evaluator:
-                custom_evaluator = getattr(self.module, self.custom_evaluator)
-                actual = custom_evaluator(solution_method, input_kwargs)
+                actual = self.custom_evaluator(solution_method, input_kwargs)
             else:
-                # if there's multiple elements expected in the output, this means that
+                # if there's multiple elements expected in the output, then
                 # there's in-place changes on the input and the solution method
                 # should have a custom evaluator
                 if isinstance(expected, tuple):
-                    print("multiple output elements detected but no custom evaluator")
+                    print(
+                        "Multiple output elements detected but no custom evaluator...exiting"
+                    )
                     exit()
                 actual = solution_method(**input_kwargs)
 
-            if self.custom_validator:
-                custom_validator = getattr(self.module, self.custom_validator)
-                is_success = self.validate(actual, expected, custom_validator)
-            else:
-                is_success = self.validate(actual, expected)
+            is_success = (
+                self.validate(actual, expected, self.custom_validator)
+                if self.custom_validator
+                else self.validate(actual, expected)
+            )
 
             print_case_summary(input_str, actual, expected, is_success)
             results.append(is_success)
