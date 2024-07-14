@@ -125,7 +125,7 @@ Take a look at the [solved LeetCode problems provided in the repo](https://githu
 
 # Development
 
-Ensure you have `poetry` instlled. Clone the repo, run `poetry shell` and you're good to go.
+Ensure you have `poetry` installed. Clone the repo, change into the created directory, run `poetry shell` and you're good to go.
 
 Tests can be executed with `poetry run pytest -v`
 
