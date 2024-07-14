@@ -121,6 +121,11 @@ def validate(actual, expected):
     return Counter(actual) == Counter(expected)
 ```
 
+# Development
+
+Ensure you have `poetry` instlled. Clone the repo, run `poetry shell` and you're good to go.
+
+Tests can be executed with `poetry run pytest -v`
+
 # TODO
-- Write tests
 - Publish on PyPI

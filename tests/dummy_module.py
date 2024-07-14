@@ -15,5 +15,14 @@ Output: 2, nums = [2,2,_,_]
 
 
 class Solution:
-    def test_dummy(self):
-        pass
+    def dummy_solution1(self):
+        return "solution1 result"
+
+    def dummy_solution2(self):
+        return "solution2 result"
+
+def evaluate():
+    return "custom evaluator present"
+
+def validate():
+    return "custom validator present"
