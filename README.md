@@ -121,6 +121,8 @@ def validate(actual, expected):
     return Counter(actual) == Counter(expected)
 ```
 
+Take a look at the [solved LeetCode problems provided in the repo](https://github.com/dashmage/plr/tree/main/tests/problems) some of which utilize these methods for testing.
+
 # Development
 
 Ensure you have `poetry` instlled. Clone the repo, run `poetry shell` and you're good to go.
