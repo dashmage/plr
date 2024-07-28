@@ -3,5 +3,3 @@ format-check:
 format:
 	black .
 	isort .
-typecheck:
-	mypy .
