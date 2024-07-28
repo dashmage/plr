@@ -1,10 +1,12 @@
 import os
-import pytest
 import subprocess
+
+import pytest
 
 # TODO: Add tests
 # For custom validator usage
 # For plr pull functionality
+
 
 def test_solution_methods(testrunner):
     assert testrunner.solution_methods == ["dummy_solution1", "dummy_solution2"]
@@ -45,7 +47,7 @@ def test_validate(testrunner):
     "s,expected",
     [
         ("nums = [1,2,3], target = 9", {"nums": [1, 2, 3], "target": 9}),
-        ("teststr = 'a string, with a comma'", {"teststr": "a string, with a comma"})
+        ("teststr = 'a string, with a comma'", {"teststr": "a string, with a comma"}),
     ],
 )
 def test_convert_string_to_dict(testrunner, s, expected):
@@ -56,7 +58,9 @@ def test_problems(problem):
     # fetch problems one at a time from problems/
     # run plr test on each of them
     # check whether all tests are successful
-    result = subprocess.run(f"plr test {problem}".split(), capture_output=True, text=True)
+    result = subprocess.run(
+        f"plr test {problem}".split(), capture_output=True, text=True
+    )
     if "FAILED" in result.stdout:
         assert False, f"Failed problem {problem}.\n{result.stdout}"
     print(f"{problem} passed.")

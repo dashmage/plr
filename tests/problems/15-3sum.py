@@ -43,7 +43,7 @@ class Solution:
         result = []
         nums.sort()
         for i in range(len(nums)):
-            if i > 0 and nums[i] == nums[i-1]:
+            if i > 0 and nums[i] == nums[i - 1]:
                 continue
 
             # keeping nums[i] constant
@@ -59,9 +59,10 @@ class Solution:
                     result.append([nums[i], nums[l], nums[r]])
                     # move to the next non-duplicate element
                     l += 1
-                    while nums[l] == nums[l-1] and l < r:
+                    while nums[l] == nums[l - 1] and l < r:
                         l += 1
-        return result          
+        return result
+
 
 def validate(actual, expected):
     from collections import Counter

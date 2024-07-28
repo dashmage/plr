@@ -21,8 +21,10 @@ class Solution:
     def dummy_solution2(self):
         return "solution2 result"
 
+
 def evaluate():
     return "custom evaluator present"
+
 
 def validate():
     return "custom validator present"

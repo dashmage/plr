@@ -1,8 +1,10 @@
-import os
-import pytest
 import importlib
+import os
+
+import pytest
 
 from plr import runner
+
 
 @pytest.fixture()
 def testrunner():
@@ -18,9 +20,8 @@ def get_problems():
             continue
         problems.append(file.split("-", 1)[-1][:-3])
     return problems
-    
+
 
 @pytest.fixture(params=get_problems())
 def problem(request):
     return request.param
-
