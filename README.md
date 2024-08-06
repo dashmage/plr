@@ -12,8 +12,6 @@ Some of my improvements include,
 - Specify your own custom methods for more complex testing scenarios required for certain problems.
 - Shorter name 😉
 
-Note: This project is still a work in progress.
-
 # Installation
 [pipx](https://pipx.pypa.io/stable) makes it super easy to get started with using `plr` in an isolated environment.
 
@@ -113,18 +111,38 @@ Certain problems require more steps to be performed either while evaluating and 
 
 For these situations, you can optionally define two methods outside the `Solution` class, namely `evaluate` and `validate`.
 
+### Evaluate Method
 The `evaluate` method comes in handy when you need to alter the results returned by the solution method. This can happen when the expected results also check the value of the input array which changes in-place.
 
-Example: Problem #26, remove duplicates from sorted array. Here, we need to evaluate the number of unique elements and return that along with the input array as a tuple.
+For example, in [Problem #26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/), duplicates are to be removed from a sorted array. For testing solutions to this problem, we need to evaluate the number of unique elements and return that along with the input array as a tuple.
+
+Here is what a sample input and output look like,
+```
+Input: nums = [1,1,2]
+Output: 2, nums = [1,2,_]
+Explanation: Your function should return k = 2, with the first two elements of nums being 1 and 2 respectively.
+It does not matter what you leave beyond the returned k (hence they are underscores).
+```
+
+We can then define our `evaluate` method accordingly.
 ```python
 def evaluate(method, kwargs):
     result = method(**kwargs)
     return result, kwargs["nums"][:result]
 ```
 
+### Validate Method
 The `validate` method can be defined when you need to explicitly specify how to compare the actual and expected test case results. By default, this is checked simply by running `actual == expected`. But in some problems, say, where the order of elements in the expected array can be ignored, you cannot directly compare their values.
 
-Example: Problem #347, top k frequent elements. In this problem, we're expected to return the top k frequent elements as a list in any order. So `Counters` can be used to ignore the sort order but still preserve duplicates during the comparison between the lists.
+For example, in [Problem #347](https://leetcode.com/problems/top-k-frequent-elements/), we're expected to return the top k frequent elements as a list in any order. So `Counters` can be used to ignore the sort order but still preserve duplicates during the comparison between the lists.
+
+Here is what a sample input and output look like,
+```
+Input: nums = [1,1,1,2,2,3], k = 2
+Output: [1,2]
+```
+
+We can then define our `validate` method accordingly.
 ```python
 def validate(actual, expected):
     from collections import Counter
@@ -134,7 +152,6 @@ def validate(actual, expected):
 Take a look at the [solved LeetCode problems provided in the repo](https://github.com/dashmage/plr/tree/main/tests/problems) some of which utilize these methods for testing.
 
 # Development
-
-Ensure you have `poetry` installed. Clone the repo, change into the created directory, run `poetry shell` and you're good to go.
+Ensure you have [poetry](https://python-poetry.org/) installed. Clone the repo, change into the created directory, run `poetry shell` and you're good to go.
 
 Tests can be executed with `poetry run pytest -v`
