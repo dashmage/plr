@@ -13,23 +13,10 @@ Some of my improvements include,
 - Shorter name 😉
 
 # Installation
-[pipx](https://pipx.pypa.io/stable) makes it super easy to get started with using `plr` in an isolated environment.
+Use [uv](https://docs.astral.sh/uv) to install and manage `plr`.
 
 ```sh
-pipx install git+https://github.com/dashmage/plr.git
-```
-
-You might need to add `~/.local/bin` to your PATH in case calling `plr` doesn't work.
-```sh
-echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc
-source ~/.bashrc
-```
-
-Otherwise, you can also install the package with `pip` (preferably in a virtual environment).
-```sh
-python3 -m venv venv
-source venv/bin/activate
-pip install git+https://github.com/dashmage/plr.git#egg=plr
+uv tool install git+https://github.com/dashmage/plr.git
 ```
 
 # Usage
@@ -38,6 +25,7 @@ From the LeetCode problem URL, obtain the title slug name. For the [two sum prob
 Now run,
 ```sh
 $ plr pull two-sum
+# Or even directly with: uv run plr pull two-sum
 
 1-two-sum.py has been created! Happy solving
 ```
@@ -150,8 +138,3 @@ def validate(actual, expected):
 ```
 
 Take a look at the [solved LeetCode problems provided in the repo](https://github.com/dashmage/plr/tree/main/tests/problems) some of which utilize these methods for testing.
-
-# Development
-Ensure you have [poetry](https://python-poetry.org/) installed. Clone the repo, change into the created directory, run `poetry shell` and you're good to go.
-
-Tests can be executed with `poetry run pytest -v`
