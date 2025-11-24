@@ -1,30 +1,29 @@
-[tool.poetry]
+[project]
 name = "plr"
 version = "0.1.0"
 description = "Python LeetCode runner to fetch problems and test solutions."
-authors = ["Ashley James <ashley@dashmage.dev>"]
+authors = [{name = "Ashley James", email = "ashley@dashmage.dev"}]
 readme = "README.md"
-license = "MIT"
-repository = "https://github.com/dashmage/plr"
+license = {text = "MIT"}
+requires-python = ">=3.9"
 keywords = ["python", "leetcode"]
+dependencies = [
+    "typer-slim>=0.12.3,<0.13.0",
+    "rich>=13.7.1,<14.0.0",
+    "gql[requests]>=3.5.0,<4.0.0",
+    "pydantic>=2.7.1,<3.0.0",
+    "beautifulsoup4>=4.12.3,<5.0.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-typer-slim = "^0.12.3"
-rich = "^13.7.1"
-gql = {extras = ["requests"], version = "^3.5.0"}
-pydantic = "^2.7.1"
-beautifulsoup4 = "^4.12.3"
+[project.urls]
+repository = "https://github.com/dashmage/plr"
 
-[tool.poetry.scripts]
+[project.scripts]
 plr = "plr.cli:plr"
 
-[tool.poetry.group.test.dependencies]
-pytest = "^8.2.1"
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
-isort = "^5.13.2"
+[project.optional-dependencies]
+test = ["pytest>=8.2.1,<9.0.0"]
+dev = ["black>=24.4.2,<25.0.0", "isort>=5.13.2,<6.0.0"]
 
 [tool.black]
 quiet = true
@@ -33,5 +32,5 @@ quiet = true
 profile = "black"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
