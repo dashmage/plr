@@ -18,6 +18,7 @@ def pull(
         None, help="Output filename. Defaults to $id-$slug.py in the current folder"
     ),
 ):
+    """Pull down provided problem from LeetCode."""
     client = make_gql_client()
     problem = fetch_problem(client, slug)
     content = create_content(problem)
@@ -30,19 +31,16 @@ def pull(
 
 
 @plr.command()
-def test(slug: str = Argument(..., help="Problem slug")):
-    """Run the tests for the provided problem slug."""
-    module_name = None
-    for file in os.listdir(os.getcwd()):
-        # strip problem id and .py suffix, then compare with slug
-        if file.split("-", 1)[-1][:-3] == slug:
-            module_name = file[:-3]  # remove .py suffix
-    if module_name is None:
-        print("Error: Not able to find file")
+def test(problem_path: str = Argument(..., help="Path to problem file")):
+    """Run the tests for the provided path to problem."""
+    if problem_path is None:
+        print("Path to problem not provided.")
         exit()
+
+    module_name = problem_path.replace("/", ".").rstrip(".py")
     sys.path.append(os.getcwd())
     try:
-        module = __import__(module_name)
+        module = __import__(module_name, fromlist=["*"])
     except ModuleNotFoundError:
         print(f"Error while importing module: {module_name}")
         exit()

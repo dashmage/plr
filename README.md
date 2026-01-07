@@ -31,9 +31,9 @@ $ plr pull two-sum
 ```
 This fetches the problem description and python starter code and adds into the newly created `1-two-sum.py` python file. `1` is the problem ID for the two sum problem.
 
-After coding up a solution and adding it to the `Solution` class, run the `plr test` command to validate it against the example test cases.
+After coding up a solution and adding it to the `Solution` class, run the `plr test` command with the path to the problem file to validate it against the example test cases.
 ```sh
-$ plr test two-sum
+$ plr test 1-two-sum.py
 ```
 
 This will test the `Solution` class method(s) with the examples automatically parsed from the problem description in the docstring.
@@ -138,3 +138,12 @@ def validate(actual, expected):
 ```
 
 Take a look at the [solved LeetCode problems provided in the repo](https://github.com/dashmage/plr/tree/main/tests/problems) some of which utilize these methods for testing.
+
+# Development
+
+Do an editable install of the tool into your local venv.
+```sh
+uv pip install -e .
+```
+
+Now any code changes will automatically reflect while using the executable.
