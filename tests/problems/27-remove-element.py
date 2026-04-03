@@ -60,18 +60,3 @@ class Solution:
                 nums[k] = nums[i]
                 k += 1
         return k
-
-
-def evaluate(method, kwargs):
-    """Evaluates solution method and returns tuple to compare with expected output."""
-    result = method(**kwargs)
-    return result, kwargs["nums"][:result]
-
-
-def validate(actual, expected):
-    """Validates whether the actual output is as expected."""
-    from collections import Counter
-
-    if actual[0] != expected[0]:
-        return False
-    return Counter(actual[1]) == Counter(expected[1])

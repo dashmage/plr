@@ -48,25 +48,17 @@ class Solution:
 
             # keeping nums[i] constant
             # solving two sum ii (#167)
-            l, r = i + 1, len(nums) - 1
-            while l < r:
-                three_sum = nums[i] + nums[l] + nums[r]
+            left, right = i + 1, len(nums) - 1
+            while left < right:
+                three_sum = nums[i] + nums[left] + nums[right]
                 if three_sum > 0:
-                    r -= 1
+                    right -= 1
                 elif three_sum < 0:
-                    l += 1
+                    left += 1
                 else:
-                    result.append([nums[i], nums[l], nums[r]])
+                    result.append([nums[i], nums[left], nums[right]])
                     # move to the next non-duplicate element
-                    l += 1
-                    while nums[l] == nums[l - 1] and l < r:
-                        l += 1
+                    left += 1
+                    while nums[left] == nums[left - 1] and left < right:
+                        left += 1
         return result
-
-
-def validate(actual, expected):
-    from collections import Counter
-
-    actual_converted = set(str(x) for x in (Counter(triplet) for triplet in actual))
-    expected_converted = set(str(x) for x in (Counter(triplet) for triplet in expected))
-    return actual_converted == expected_converted

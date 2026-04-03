@@ -56,8 +56,3 @@ class Solution:
                 nums[left] = nums[right]
                 left += 1
         return left
-
-
-def evaluate(method, kwargs):
-    result = method(**kwargs)
-    return result, kwargs["nums"][:result]

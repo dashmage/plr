@@ -98,10 +98,10 @@ Output: [1,2]
 ## Advanced Usage
 Certain problems require more steps to be performed either while evaluating and returning the actual results from the solution method or while validating whether the results are as expected.
 
-For these situations, you can optionally define two methods outside the `Solution` class, namely `evaluate` and `validate`.
+`plr` can now handle the most common custom-judge cases directly from the docstring, so you usually do not need to add extra helper functions to the solution file.
 
-### Evaluate Method
-The `evaluate` method comes in handy when you need to alter the results returned by the solution method. This can happen when the expected results also check the value of the input array which changes in-place.
+### In-Place Array Problems
+When the output includes a returned value and a mutated input array, `plr` treats that as an in-place prefix check automatically.
 
 For example, in [Problem #26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/), duplicates are to be removed from a sorted array. For testing solutions to this problem, we need to evaluate the number of unique elements and return that along with the input array as a tuple.
 
@@ -113,32 +113,35 @@ Explanation: Your function should return k = 2, with the first two elements of n
 It does not matter what you leave beyond the returned k (hence they are underscores).
 ```
 
-We can then define our `evaluate` method accordingly.
-```python
-def evaluate(method, kwargs):
-    result = method(**kwargs)
-    return result, kwargs["nums"][:result]
-```
+`plr` will call the solution, read the returned `k`, and compare `nums[:k]` against the non-underscore prefix from the expected output.
 
-### Validate Method
-The `validate` method can be defined when you need to explicitly specify how to compare the actual and expected test case results. By default, this is checked simply by running `actual == expected`. But in some problems, say, where the order of elements in the expected array can be ignored, you cannot directly compare their values.
+### Inferred Comparison Rules
+For problems where equality is not a simple `actual == expected`, `plr` infers the right comparison mode directly from the problem text.
 
-For example, in [Problem #347](https://leetcode.com/problems/top-k-frequent-elements/), we're expected to return the top k frequent elements as a list in any order. So `Counters` can be used to ignore the sort order but still preserve duplicates during the comparison between the lists.
+It currently detects:
+- order-insensitive flat lists when the problem says the answer can be returned in any order
+- order-insensitive nested lists for cases like `3Sum` and grouped anagrams
+- order-insensitive in-place prefix checks for custom-judge problems such as `Remove Element`
 
-Here is what a sample input and output look like,
+For example, in [Problem #347](https://leetcode.com/problems/top-k-frequent-elements/), the answer can be returned in any order:
 ```
 Input: nums = [1,1,1,2,2,3], k = 2
 Output: [1,2]
 ```
 
-We can then define our `validate` method accordingly.
-```python
-def validate(actual, expected):
-    from collections import Counter
-    return Counter(actual) == Counter(expected)
+For nested outputs such as `3Sum` or grouped anagrams:
+```
+Input: nums = [-1,0,1,2,-1,-4]
+Output: [[-1,-1,2],[-1,0,1]]
 ```
 
-Take a look at the [solved LeetCode problems provided in the repo](https://github.com/dashmage/plr/tree/main/tests/problems) some of which utilize these methods for testing.
+For [Problem #27](https://leetcode.com/problems/remove-element/), where the first `k` mutated elements may be in any order:
+```
+Input: nums = [3,2,2,3], val = 3
+Output: 2, nums = [2,2,_,_]
+```
+
+Take a look at the [solved LeetCode problems provided in the repo](https://github.com/dashmage/plr/tree/main/tests/problems) for concrete examples.
 
 # Development
 

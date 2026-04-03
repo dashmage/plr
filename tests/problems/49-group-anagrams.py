@@ -35,8 +35,3 @@ class Solution:
             sorted_word = "".join(sorted(word))
             anagram_map[sorted_word].append(word)
         return list(anagram_map.values())
-
-
-def validate(actual, expected):
-    actual = sorted([sorted(elem) for elem in actual], key=lambda x: len(x))
-    return actual == expected

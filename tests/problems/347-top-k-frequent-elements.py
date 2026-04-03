@@ -33,8 +33,6 @@ from collections import defaultdict
 
 
 class Solution:
-    # sorting through count values in dict
-    # O(nlogn)
     def topKFrequent(self, nums: list[int], k: int) -> list[int]:
         count = defaultdict(int)
         for n in nums:
@@ -42,9 +40,6 @@ class Solution:
 
         return sorted(count, key=lambda x: count[x], reverse=True)[:k]
 
-    # bucket sort with freq as index
-    # thanks NeetCode, https://youtu.be/YPTqKIgVk-k?si=UqXaqjvCXi5xnCAy
-    # O(n)
     def topKFrequent_efficient(self, nums: list[int], k: int) -> list[int]:
         count = defaultdict(int)
         for n in nums:
@@ -63,9 +58,3 @@ class Solution:
                 if len(topk) == k:  # guaranteed to execute
                     return topk
         raise ValueError("Expected k to be within the number of unique elements")
-
-
-def validate(actual, expected):
-    from collections import Counter
-
-    return Counter(actual) == Counter(expected)
