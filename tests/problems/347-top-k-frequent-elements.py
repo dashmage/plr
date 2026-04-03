@@ -62,6 +62,7 @@ class Solution:
                 topk.append(n)
                 if len(topk) == k:  # guaranteed to execute
                     return topk
+        raise ValueError("Expected k to be within the number of unique elements")
 
 
 def validate(actual, expected):

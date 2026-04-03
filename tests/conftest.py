@@ -1,9 +1,11 @@
 import importlib
-import os
+from pathlib import Path
 
 import pytest
 
 from plr import runner
+
+PROBLEMS_DIR = Path(__file__).parent / "problems"
 
 
 @pytest.fixture()
@@ -13,13 +15,7 @@ def testrunner():
 
 
 def get_problems():
-    os.chdir(os.path.join(os.getcwd(), "tests", "problems"))
-    problems = []
-    for file in os.listdir(os.getcwd()):
-        if file == "__pycache__":
-            continue
-        problems.append(file.split("-", 1)[-1][:-3])
-    return problems
+    return sorted(path for path in PROBLEMS_DIR.glob("*.py"))
 
 
 @pytest.fixture(params=get_problems())

@@ -25,18 +25,7 @@ Follow up: Can you solve the problem in O(1) extra space complexity? (The out
 
 """
 
-# Really whacky intuition needed to figure out how to do this, esp in O(1) memory
-# NeetCode helps again with the very informative step-by-step reasoning
-# https://www.youtube.com/watch?v=bNvIQI2wAjk&list=PLot-Xpze53leF0FeHz2X0aG3zd0mr1AW_
-
-# easier to think of the elements in the list as [a, b, c, d] and visualize how
-# you get the result as [bcd, acd, abd, abc]
-
-
 class Solution:
-    # For [1, 2, 3, 4] if i = 1, nums[i] = 2
-    # prefix product = 1
-    # suffix product = 3 * 4 = 12
     # O(n) time complexity, O(n) space complexity
     def productExceptSelf(self, nums: list[int]) -> list[int]:
         result, prefix_products, suffix_products = [], [], []

@@ -34,6 +34,7 @@ This fetches the problem description and python starter code and adds into the n
 After coding up a solution and adding it to the `Solution` class, run the `plr test` command with the path to the problem file to validate it against the example test cases.
 ```sh
 $ plr test 1-two-sum.py
+# Or: python -m plr test 1-two-sum.py
 ```
 
 This will test the `Solution` class method(s) with the examples automatically parsed from the problem description in the docstring.
@@ -141,9 +142,22 @@ Take a look at the [solved LeetCode problems provided in the repo](https://githu
 
 # Development
 
-Do an editable install of the tool into your local venv.
+Install the project with the test extra into your local environment.
+```sh
+uv sync --extra test
+```
+
+Run the test suite with:
+```sh
+uv run --extra test pytest -q
+```
+
+Run type checking with `ty`:
+```sh
+ty check
+```
+
+For an editable install of the CLI itself:
 ```sh
 uv pip install -e .
 ```
-
-Now any code changes will automatically reflect while using the executable.

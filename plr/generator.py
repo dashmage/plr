@@ -1,9 +1,21 @@
+import ast
 from string import Template
 from textwrap import dedent
 
 from bs4 import BeautifulSoup
 
 from plr.models import Problem
+
+
+def render_python_snippet(code: str) -> str:
+    stripped = code.rstrip()
+    try:
+        ast.parse(f"{stripped}\n")
+        return f"{stripped}\n"
+    except (IndentationError, SyntaxError) as exc:
+        if "expected an indented block" not in str(exc):
+            raise
+        return f"{code}pass\n"
 
 
 def create_content(p: Problem) -> str:
@@ -30,6 +42,6 @@ def create_content(p: Problem) -> str:
         id=q.question_id,
         title=q.title,
         diff=q.difficulty,
-        snippet=snippet.code,
+        snippet=render_python_snippet(snippet.code),
         description=task,
     )

@@ -1,12 +1,11 @@
 import json
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LCBaseModel(BaseModel):
-    class Config:  # noqa
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class QuestionStats(LCBaseModel):
@@ -35,8 +34,6 @@ class Question(LCBaseModel):
     def get_python_snippet(self) -> CodeSnippet:
         for s in self.code_snippets:
             if s.lang_slug == "python3":
-                # make the code valid
-                s.code = s.code + "pass"
                 return s
         raise ValueError("No python snippet found in this problem")
 

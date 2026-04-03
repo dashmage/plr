@@ -1,14 +1,31 @@
-import os
-import sys
+import importlib
+import importlib.util
+import re
 from pathlib import Path
 
-from typer import Argument, Option, Typer, echo
+from typer import Argument, Exit, Option, Typer, echo
 
 from plr.fetcher import fetch_problem, make_gql_client
 from plr.generator import create_content
 from plr.runner import TestRunner
 
 plr = Typer()
+
+
+def load_problem_module(problem_path: str):
+    candidate = Path(problem_path)
+    if candidate.exists():
+        module_path = candidate.resolve()
+        module_name = re.sub(r"\W+", "_", module_path.stem)
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Unable to load module from {module_path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    module_name = problem_path.replace("/", ".").replace("\\", ".")
+    return importlib.import_module(module_name)
 
 
 @plr.command()
@@ -33,17 +50,12 @@ def pull(
 @plr.command()
 def test(problem_path: str = Argument(..., help="Path to problem file")):
     """Run the tests for the provided path to problem."""
-    if problem_path is None:
-        print("Path to problem not provided.")
-        exit()
-
-    module_name = problem_path.replace("/", ".").rstrip(".py")
-    sys.path.append(os.getcwd())
     try:
-        module = __import__(module_name, fromlist=["*"])
-    except ModuleNotFoundError:
-        print(f"Error while importing module: {module_name}")
-        exit()
+        module = load_problem_module(problem_path)
+    except (ImportError, FileNotFoundError, OSError) as exc:
+        echo(f"Error while importing module: {exc}", err=True)
+        raise Exit(code=1) from exc
 
     runner = TestRunner(module)
-    runner.run_tests()
+    if not runner.run_tests():
+        raise Exit(code=1)
