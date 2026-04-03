@@ -27,14 +27,14 @@ Now run,
 $ plr pull two-sum
 # Or even directly with: uv run plr pull two-sum
 
-1-two-sum.py has been created! Happy solving
+001-two-sum.py has been created! Happy solving
 ```
-This fetches the problem description and python starter code and adds into the newly created `1-two-sum.py` python file. `1` is the problem ID for the two sum problem.
+This fetches the problem description and python starter code and adds into the newly created `001-two-sum.py` python file. `001` is the zero-padded problem ID for the two sum problem.
 
 After coding up a solution and adding it to the `Solution` class, run the `plr test` command with the path to the problem file to validate it against the example test cases.
 ```sh
-$ plr test 1-two-sum.py
-# Or: python -m plr test 1-two-sum.py
+$ plr test 001-two-sum.py
+# Or: python -m plr test 001-two-sum.py
 ```
 
 This will test the `Solution` class method(s) with the examples automatically parsed from the problem description in the docstring.
@@ -150,6 +150,15 @@ Install the project with the test extra into your local environment.
 uv sync --extra test
 ```
 
+For a live editable install in a virtualenv:
+```sh
+uv venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
+This makes the local `plr` command use your current checkout, so code changes are reflected immediately.
+
 Run the test suite with:
 ```sh
 uv run --extra test pytest -q
@@ -160,7 +169,7 @@ Run type checking with `ty`:
 ty check
 ```
 
-For an editable install of the CLI itself:
+For a one-off local CLI install without activating a venv:
 ```sh
-uv pip install -e .
+uv tool install --force .
 ```

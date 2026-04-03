@@ -176,7 +176,7 @@ def test_validate_nested_unordered(testrunner):
 
 
 def test_load_problem_module_from_file():
-    module = load_problem_module(str(PROBLEMS_DIR / "1-two-sum.py"))
+    module = load_problem_module(str(PROBLEMS_DIR / "001-two-sum.py"))
     assert module.Solution().twoSum([2, 7, 11, 15], 9) == [0, 1]
 
 

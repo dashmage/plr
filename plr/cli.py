@@ -41,7 +41,7 @@ def pull(
     content = create_content(problem)
 
     if not out:
-        out = Path(f"{problem.question.question_id}-{slug}.py")
+        out = Path(f"{problem.question.question_id:03d}-{slug}.py")
 
     out.write_text(content, encoding="utf8")
     echo(f"{out} has been created! Happy solving")
