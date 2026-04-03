@@ -7,7 +7,7 @@ An Anagram is a word or phrase formed by rearranging the letters of a different 
 
 Example 1:
 Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+Output: [["eat","tea","ate"],["tan","nat"],["bat"]]
 Example 2:
 Input: strs = [""]
 Output: [[""]]

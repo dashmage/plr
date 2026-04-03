@@ -13,18 +13,9 @@ from plr.show import (
 )
 
 PLACEHOLDER_VALUE = object()
-DEFAULT_COMPARE_MODE = "exact"
-UNORDERED_COMPARE_MODE = "unordered"
-NESTED_UNORDERED_COMPARE_MODE = "nested-unordered"
-INPLACE_PREFIX_COMPARE_MODE = "inplace-prefix"
-INPLACE_PREFIX_UNORDERED_COMPARE_MODE = "inplace-prefix-unordered"
 EXAMPLE_RE = re.compile(
     r"^\s*Input:\s*(?P<input>.*?)^\s*Output:\s*(?P<output>.*?)(?=^\s*(?:Example(?:\s+\d+)?\s*:|Explanation\s*:|Constraints\s*:|Follow(?:-| )up\s*:|Note\s*:)|\Z)",
     flags=re.MULTILINE | re.DOTALL,
-)
-ANY_ORDER_RE = re.compile(
-    r"\bany order\b|order of the output.*does not matter|order of the triplets.*does not matter|can be returned in any order",
-    flags=re.IGNORECASE | re.DOTALL,
 )
 
 
@@ -32,7 +23,6 @@ ANY_ORDER_RE = re.compile(
 class ExampleCase:
     input_text: str
     output_text: str
-    compare_mode: str = DEFAULT_COMPARE_MODE
 
 
 @dataclass(frozen=True)
@@ -77,6 +67,7 @@ def _build_linked_list(node_class, values):
         if head is None:
             head = current = node
         else:
+            current = cast(Any, current)
             current.next = node
             current = node
     return head
@@ -299,34 +290,11 @@ def _trim_output_block(raw: str) -> str:
     return "\n".join(output_lines).strip()
 
 
-def _normalize_unordered(value: Any) -> Any:
-    if isinstance(value, dict):
-        return tuple(
-            sorted(
-                (_normalize_unordered(key), _normalize_unordered(item))
-                for key, item in value.items()
-            )
-        )
-    if isinstance(value, (list, tuple)):
-        normalized_items = [_normalize_unordered(item) for item in value]
-        return tuple(sorted(normalized_items, key=repr))
-    if isinstance(value, set):
-        return tuple(sorted((_normalize_unordered(item) for item in value), key=repr))
-    return value
-
-
-def _contains_nested_sequence(value: Any) -> bool:
-    return isinstance(value, (list, tuple)) and any(
-        isinstance(item, (list, tuple, set, dict)) for item in value
-    )
-
-
 class TestRunner:
     def __init__(self, module):
         self.module = module
         self.solution = module.Solution() if hasattr(module, "Solution") else None
         self.doc = module.__doc__
-        self.active_compare_mode = DEFAULT_COMPARE_MODE
         self.test_cases = self.parse_examples()
 
     @property
@@ -344,15 +312,11 @@ class TestRunner:
         matches = list(EXAMPLE_RE.finditer(doc))
         cases = []
         for index, match in enumerate(matches):
-            next_start = matches[index + 1].start() if index + 1 < len(matches) else len(doc)
-            context = doc[match.start() : next_start]
             output_text = _trim_output_block(match.group("output"))
-            compare_mode = self.infer_compare_mode(output_text, context, doc)
             cases.append(
                 ExampleCase(
                     input_text=dedent(match.group("input")).strip(),
                     output_text=output_text,
-                    compare_mode=compare_mode,
                 )
             )
         return cases
@@ -380,31 +344,6 @@ class TestRunner:
             if kw.arg is not None
         }
 
-    def infer_compare_mode(self, output_text: str, context: str, full_doc: str) -> str:
-        output_parts = _parse_output_parts(output_text)
-        is_inplace_prefix = (
-            len(output_parts) == 2
-            and output_parts[0][0] is None
-            and output_parts[1][0] is not None
-            and isinstance(output_parts[1][1], list)
-        )
-        expected = self.eval_output(output_text)
-        signals = "\n".join([context, full_doc])
-        mentions_any_order = bool(ANY_ORDER_RE.search(signals))
-        mentions_sorting_judge = "sort(nums, 0, k)" in full_doc.lower()
-
-        if is_inplace_prefix:
-            if mentions_any_order or mentions_sorting_judge:
-                return INPLACE_PREFIX_UNORDERED_COMPARE_MODE
-            return INPLACE_PREFIX_COMPARE_MODE
-
-        if mentions_any_order:
-            if _contains_nested_sequence(expected):
-                return NESTED_UNORDERED_COMPARE_MODE
-            return UNORDERED_COMPARE_MODE
-
-        return DEFAULT_COMPARE_MODE
-
     def validate(self, actual, expected):
         if isinstance(expected, InPlacePrefixExpectation):
             if not isinstance(actual, tuple) or len(actual) != 2:
@@ -412,17 +351,7 @@ class TestRunner:
             actual_result, actual_prefix = actual
             if actual_result != expected.result:
                 return False
-            if self.active_compare_mode == INPLACE_PREFIX_UNORDERED_COMPARE_MODE:
-                return _normalize_unordered(actual_prefix) == _normalize_unordered(
-                    expected.expected_prefix
-                )
             return actual_prefix == expected.expected_prefix
-
-        if self.active_compare_mode in {
-            UNORDERED_COMPARE_MODE,
-            NESTED_UNORDERED_COMPARE_MODE,
-        }:
-            return _normalize_unordered(actual) == _normalize_unordered(expected)
 
         return actual == expected
 
@@ -524,7 +453,6 @@ class TestRunner:
         for case in self.test_cases:
             input_kwargs = self.parse_input(case.input_text)
             expected = self.build_expected(case.output_text)
-            self.active_compare_mode = case.compare_mode
             solution_method = getattr(self.solution, method_name)
             actual = self.evaluate_actual(solution_method, input_kwargs, expected)
 
