@@ -1,16 +1,7 @@
 # Overview
 `plr`(python-leetcode-runner) is a tool to fetch [LeetCode](https://leetcode.com) problems (using the problem title slug) and then to test your solutions.
 
-A lot of code logic has been lifted from the wonderful [leetcode-runner project](https://github.com/fbjorn/leetcode-runner).
-- `fetcher.py`: To execute the GraphQL query on the public API and get the problem details.
-- `models.py`: Pydantic models for the problem data obtained.
-- `generator.py`: To generate the template for the python solution file that's created.
-
-Some of my improvements include,
-- A new `test` subcommand instead of calling the class method in the solution file.
-- Supports testing with multiple solutions for a problem.
-- Specify your own custom methods for more complex testing scenarios required for certain problems.
-- Shorter name 😉
+`plr` handles the most common custom-judge cases directly from the docstring, so you usually do not need to add extra helper functions to the solution file.
 
 # Installation
 Use [uv](https://docs.astral.sh/uv) to install and manage `plr`.
@@ -95,12 +86,7 @@ Input: nums = [1,2,3], k = 2
 Output: [1,2]
 ```
 
-## Advanced Usage
-Certain problems require more steps to be performed either while evaluating and returning the actual results from the solution method or while validating whether the results are as expected.
-
-`plr` can now handle the most common custom-judge cases directly from the docstring, so you usually do not need to add extra helper functions to the solution file.
-
-### In-Place Array Problems
+## In-Place Array Problems
 When the output includes a returned value and a mutated input array, `plr` treats that as an in-place prefix check automatically.
 
 For example, in [Problem #26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/), duplicates are to be removed from a sorted array. For testing solutions to this problem, we need to evaluate the number of unique elements and return that along with the input array as a tuple.
@@ -115,7 +101,7 @@ It does not matter what you leave beyond the returned k (hence they are undersco
 
 `plr` will call the solution, read the returned `k`, and compare `nums[:k]` against the non-underscore prefix from the expected output.
 
-### Inferred Comparison Rules
+## Inferred Comparison Rules
 For problems where equality is not a simple `actual == expected`, `plr` infers the right comparison mode directly from the problem text.
 
 It currently detects:

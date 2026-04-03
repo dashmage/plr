@@ -1,8 +1,9 @@
 import ast
+import inspect
 import re
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, Optional, cast
+from typing import Any, Optional, cast, get_args, get_origin
 
 from plr.show import (
     print_case_summary,
@@ -39,6 +40,122 @@ class InPlacePrefixExpectation:
     result: Any
     target_name: str
     expected_prefix: list[Any]
+
+
+def _unwrap_annotation(annotation):
+    if annotation is inspect._empty:
+        return None
+
+    origin = get_origin(annotation)
+    if origin is None:
+        return annotation
+
+    args = [arg for arg in get_args(annotation) if arg is not type(None)]
+    if len(args) == 1:
+        return _unwrap_annotation(args[0])
+    return annotation
+
+
+def _annotation_kind(annotation) -> Optional[str]:
+    annotation = _unwrap_annotation(annotation)
+    if annotation is None or not isinstance(annotation, type):
+        return None
+
+    if annotation.__name__ == "ListNode":
+        return "linked_list"
+    if annotation.__name__ == "TreeNode":
+        return "tree"
+    if annotation.__name__ == "Node":
+        return "random_list"
+    return None
+
+
+def _build_linked_list(node_class, values):
+    head = current = None
+    for value in values:
+        node = node_class(value)
+        if head is None:
+            head = current = node
+        else:
+            current.next = node
+            current = node
+    return head
+
+
+def _serialize_linked_list(head):
+    values = []
+    while head is not None:
+        values.append(head.val)
+        head = head.next
+    return values
+
+
+def _build_tree(node_class, values):
+    if not values:
+        return None
+    if values[0] is None:
+        return None
+
+    nodes = [None if value is None else node_class(value) for value in values]
+    child_index = 1
+    for node in nodes:
+        if node is None:
+            continue
+        if child_index < len(nodes):
+            node.left = nodes[child_index]
+            child_index += 1
+        if child_index < len(nodes):
+            node.right = nodes[child_index]
+            child_index += 1
+    return nodes[0]
+
+
+def _serialize_tree(root):
+    if root is None:
+        return []
+
+    values = []
+    queue = [root]
+    while queue:
+        node = queue.pop(0)
+        if node is None:
+            values.append(None)
+            continue
+        values.append(node.val)
+        queue.append(node.left)
+        queue.append(node.right)
+
+    while values and values[-1] is None:
+        values.pop()
+    return values
+
+
+def _build_random_list(node_class, values):
+    if not values:
+        return None
+
+    nodes = [node_class(value[0]) for value in values]
+    for index, (_, random_index) in enumerate(values):
+        if index + 1 < len(nodes):
+            nodes[index].next = nodes[index + 1]
+        nodes[index].random = None if random_index is None else nodes[random_index]
+    return nodes[0]
+
+
+def _serialize_random_list(head):
+    nodes = []
+    indices = {}
+    current = head
+    while current is not None:
+        indices[current] = len(nodes)
+        nodes.append(current)
+        current = current.next
+
+    result = []
+    for node in nodes:
+        random_index = None if node.random is None else indices[node.random]
+        result.append([node.val, random_index])
+    return result
 
 
 def _normalize_literals(raw: str) -> str:
@@ -207,13 +324,15 @@ def _contains_nested_sequence(value: Any) -> bool:
 class TestRunner:
     def __init__(self, module):
         self.module = module
-        self.solution = module.Solution()
+        self.solution = module.Solution() if hasattr(module, "Solution") else None
         self.doc = module.__doc__
         self.active_compare_mode = DEFAULT_COMPARE_MODE
         self.test_cases = self.parse_examples()
 
     @property
     def solution_methods(self) -> list:
+        if self.solution is None:
+            return []
         attrs = list(vars(self.solution.__class__))
         return [a for a in attrs if not a.startswith("_")]
 
@@ -244,6 +363,13 @@ class TestRunner:
         if len(output_parts) == 1 and output_parts[0][0] is None:
             return output_parts[0][1]
         return tuple(value for _, value in output_parts)
+
+    def parse_input(self, s):
+        if re.search(r"\b\w+\s*=", s):
+            return self.convert_string_to_dict(s)
+
+        parts = _split_top_level(_normalize_literals(s.strip()))
+        return [_parse_literal(part) for part in parts]
 
     def convert_string_to_dict(self, s):
         expression = ast.parse(f"f({_normalize_literals(s.strip())})", mode="eval")
@@ -315,17 +441,88 @@ class TestRunner:
             )
         return self.eval_output(output_text)
 
+    def _adapt_value(self, annotation, value):
+        kind = _annotation_kind(annotation)
+        if kind == "linked_list" and isinstance(value, list):
+            return _build_linked_list(_unwrap_annotation(annotation), value), kind
+        if kind == "tree" and isinstance(value, list):
+            return _build_tree(_unwrap_annotation(annotation), value), kind
+        if kind == "random_list" and isinstance(value, list):
+            return _build_random_list(_unwrap_annotation(annotation), value), kind
+        return value, None
+
+    def _serialize_value(self, value, kind):
+        if kind == "linked_list":
+            return _serialize_linked_list(value)
+        if kind == "tree":
+            return _serialize_tree(value)
+        if kind == "random_list":
+            return _serialize_random_list(value)
+        return value
+
+    def adapt_inputs(self, method, input_kwargs):
+        signature = inspect.signature(method)
+        adapted_kwargs = {}
+        adapted_kinds = {}
+
+        for name, value in input_kwargs.items():
+            parameter = signature.parameters.get(name)
+            annotation = parameter.annotation if parameter else inspect._empty
+            adapted_value, kind = self._adapt_value(annotation, value)
+            adapted_kwargs[name] = adapted_value
+            if kind:
+                adapted_kinds[name] = kind
+
+        return adapted_kwargs, adapted_kinds
+
     def evaluate_actual(self, method, input_kwargs, expected):
+        input_kwargs, adapted_kinds = self.adapt_inputs(method, input_kwargs)
+
         if isinstance(expected, InPlacePrefixExpectation):
             result = method(**input_kwargs)
             target_value = input_kwargs[expected.target_name]
             return result, target_value[:result]
-        return method(**input_kwargs)
+
+        result = method(**input_kwargs)
+        return_kind = _annotation_kind(inspect.signature(method).return_annotation)
+        if return_kind:
+            return self._serialize_value(result, return_kind)
+
+        if result is None and len(adapted_kinds) == 1:
+            target_name = next(iter(adapted_kinds))
+            return self._serialize_value(input_kwargs[target_name], adapted_kinds[target_name])
+
+        return result
+
+    def test_design_problem(self):
+        results = []
+        for case in self.test_cases:
+            operations, arguments = self.parse_input(case.input_text)
+            expected = self.build_expected(case.output_text)
+            class_name = operations[0]
+            design_class = getattr(self.module, class_name)
+            instance = None
+            actual = []
+
+            for operation, args in zip(operations, arguments):
+                if operation == class_name:
+                    instance = design_class(*args)
+                    actual.append(None)
+                    continue
+                actual.append(getattr(instance, operation)(*args))
+
+            is_success = self.validate(actual, expected)
+            print_case_summary(case.input_text, actual, expected, is_success)
+            results.append(is_success)
+            print_dashes()
+
+        print_session_summary(results)
+        return all(results)
 
     def test_method(self, method_name):
         results = []
         for case in self.test_cases:
-            input_kwargs = self.convert_string_to_dict(case.input_text)
+            input_kwargs = self.parse_input(case.input_text)
             expected = self.build_expected(case.output_text)
             self.active_compare_mode = case.compare_mode
             solution_method = getattr(self.solution, method_name)
@@ -345,6 +542,10 @@ class TestRunner:
         return all(results)
 
     def run_tests(self):
+        if self.solution is None:
+            print_heading("\n=== design ===\n")
+            return self.test_design_problem()
+
         is_success = True
         for method_name in self.solution_methods:
             print_heading(f"\n=== {method_name} ===\n")
