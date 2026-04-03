@@ -433,6 +433,8 @@ class TestRunner:
             instance = None
             actual = []
 
+            print_heading(f"\n=== {class_name} design ===\n")
+
             for operation, args in zip(operations, arguments):
                 if operation == class_name:
                     instance = design_class(*args)
@@ -471,7 +473,6 @@ class TestRunner:
 
     def run_tests(self):
         if self.solution is None:
-            print_heading("\n=== design ===\n")
             return self.test_design_problem()
 
         is_success = True
